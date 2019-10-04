@@ -47,5 +47,5 @@ def choose_map(maps,used_poi): #search all maps(n*n str), return a coordinate(m,
 if __name__ == "__main__":
     maps=["000000","000xx0","00xxy0","0yyy00","0yy000","000000"]
     used_poi=[]
-    peep=choose_map(maps) #A set of several coordinates(like [[0,1],[1,1],[1,2]]). peep[0] indicates the 2*2 matrix location and others are points that union
+    peep=choose_map(maps,used_poi) #A set of several coordinates(like [[0,1],[1,1],[1,2]]). peep[0] indicates the 2*2 matrix location and others are points that union
     used_poi.append(peep[0])
