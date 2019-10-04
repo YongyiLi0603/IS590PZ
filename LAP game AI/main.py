@@ -107,15 +107,6 @@ if __name__ == "__main__":
     for i in p_maps:
         print(i)
 
-def random_choose(union_set,used_poi): #sub_fuction of choose_map. union_set is not empty
-    for i in union_set:
-        if i[0] in used_poi:
-            union_set.remove(i)
-    l=len(union_set)
-    ran=random.randint(0,l-1)
-    return union_set[ran]
-
-
 '''
 if __name__ == "__main__":
     maps=["000000","000xx0","00xxy0","0yyy00","0yy000","000000"]
