@@ -7,14 +7,16 @@ from random import choice
 import json
 from time import sleep
 
-test = ['xxxwww','xyyyyw','yyyyyw','zzzzzz','yyyyyw','zzzzzz']
-p_maps = [['000000','000000','000000','000000','000000','000000']]
+used_poi=[]
 
-def pruning(m,n,p_maps,direction):
+
+def pruning(m,n,clue,p_maps,direction):
     elements = []
-    for i in range(m,m+2):
-        for j in range(n,n+2):
-            elements.append(test[i][j])
+    #for i in range(m,m+2):
+        #for j in range(n,n+2):
+            #elements.append(test[i][j])
+    for i in len(clue):
+        elements.append(clue[i])
     sub_maps = list(set(list(itertools.permutations(elements,4))))
     tmp_p_maps = []
     flag = True
@@ -175,7 +177,7 @@ def play_rps(pz_server_url: str, netid: str, player_key: str):
             move_instruction = ['yyyyyy', 'wwwwwy',
                                 'wwzxyy', 'wwzxxx', 'zzzxxx', 'zzzzxx']
         else:
-            peep=choose_map(maps,used_poi)
+            peep=choose_map(p_maps[0],used_poi)
             move_instruction = str(peep[0]) #now in form '[0,0]' might require '(0,0)'
 
         print("\nshhh... sending my matrix", move_instruction)
@@ -183,10 +185,13 @@ def play_rps(pz_server_url: str, netid: str, player_key: str):
         submit_move = session.post(url=pz_server_url + "match/{}/move".format(match_id),
                                    json={"move": move_instruction})
         move_result = submit_move.json()["result"]
-        print('move_result', move_result)
-        print('clue',move_result['outcome'][5:])
+        if result['turn'] not in (1,2):
+            clue=move_result['outcome'][5:]
+            print('move_result', move_result)
+            print('clue',move_result['outcome'][5:])
+            pruning(peep[0][0],peep[0][1],clue,p_maps,peep)
 
-        
+
         if move_result["match_status"] in ["game over", "scored, final"]:
             print('Game over?  Who won?')
             break
@@ -202,12 +207,12 @@ def play_rps(pz_server_url: str, netid: str, player_key: str):
 if __name__ == "__main__":
     #maps=["000000","000xx0","00xxy0","0yyy00","0yy000","000000"]
     #p_maps = [['000000','000000','000000','000000','000000','000000']]
-    used_poi=[]
-    maps=[]
+    p_maps = [['000000','000000','000000','000000','000000','000000']]
     netid = 'chunhao3'
     player_key = '7169e9f9e017'
     pz_server = 'https://jweible.web.illinois.edu/pz-server/games/'
     play_rps(pz_server, netid, player_key)
+    '''
     flag = 1
     while 1:
         peep=choose_map(maps,used_poi) #A set of several coordinates(like [[0,1],[1,1],[1,2]]). peep[0] indicates the 2*2 matrix location and others are points that union
@@ -226,6 +231,7 @@ if __name__ == "__main__":
             break
     for i in p_maps:
         print(i)
+        '''
 
 '''
 if __name__ == "__main__":
