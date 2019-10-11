@@ -8,7 +8,454 @@ import json
 from time import sleep
 
 used_poi=[]
+def exam(puzzle,x,y,count,dire,region,puzzle_,record):
+    direction = [[1,0],[-1,0],[0,-1],[0,1]]
+    go = random.randint(0,3)
+    if puzzle[x][y] != '0':
+        return 0,[[]],puzzle_
+    if len(dire[-1]) != 4:
+        while go in dire[-1]:
+            go = random.randint(0,3)
+        dire[-1].append(go)
+    else:
+        dire[-1].append(go)
+    if len(dire[-1]) == 5:
+        if len(dire) == 1:
+            return count,dire,puzzle_
+        else:
+            return exam(puzzle,x-direction[dire[-2][-1]][0],y-direction[dire[-2][-1]][1],count,dire[:-1],region,puzzle_,record)
+    else:
+        if x + direction[go][0] >= len(puzzle) or y + direction[go][1] >= len(puzzle[0]) or x + direction[go][0] < 0 or y + direction[go][1] <0:
+            return exam(puzzle,x,y,count,dire,region,puzzle_,record)
+        elif puzzle[x+direction[go][0]][y+direction[go][1]] == '0':
+            if [x+direction[go][0],y+direction[go][1]] not in record:
+                count += 1 
+                tmp = list(puzzle_[x + direction[go][0]])
+                tmp[y + direction[go][1]] = region
+                tmp = "".join(tmp)
+                puzzle_[x + direction[go][0]] = tmp
+                if go == 0:
+                    dire.append([1])
+                if go == 1:
+                    dire.append([0])
+                if go == 2:
+                    dire.append([3])
+                if go == 3:
+                    dire.append([2])
+                record.append([x+direction[go][0],y+direction[go][1]])
+                return exam(puzzle,x+direction[go][0],y+direction[go][1],count,dire,region,puzzle_,record)
+            else:
+                return exam(puzzle,x,y,count,dire,region,puzzle_,record)
 
+        else:
+            return exam(puzzle,x,y,count,dire,region,puzzle_,record)
+
+def valid(puzzle,x,y,count,dire,region,puzzle_,record):
+    direction = [[1,0],[-1,0],[0,-1],[0,1]]
+    go = random.randint(0,3)
+    if len(dire[-1]) != 4:
+        while go in dire[-1]:
+            go = random.randint(0,3)
+        dire[-1].append(go)
+    else:
+        dire[-1].append(go)
+    if len(dire[-1]) == 5:
+        if len(dire) == 1:
+            return count,dire,puzzle_
+        else:
+            return valid(puzzle,x-direction[dire[-2][-1]][0],y-direction[dire[-2][-1]][1],count,dire[:-1],region,puzzle_,record)
+    else:
+        if x + direction[go][0] >= len(puzzle) or y + direction[go][1] >= len(puzzle[0]) or x + direction[go][0] < 0 or y + direction[go][1] <0:
+            return valid(puzzle,x,y,count,dire,region,puzzle_,record)
+        elif puzzle[x+direction[go][0]][y+direction[go][1]] == region:
+            if [x+direction[go][0],y+direction[go][1]] not in record:
+                count += 1 
+                tmp = list(puzzle_[x + direction[go][0]])
+                tmp[y + direction[go][1]] = region
+                tmp = "".join(tmp)
+                puzzle_[x + direction[go][0]] = tmp
+                if go == 0:
+                    dire.append([1])
+                if go == 1:
+                    dire.append([0])
+                if go == 2:
+                    dire.append([3])
+                if go == 3:
+                    dire.append([2])
+                record.append([x+direction[go][0],y+direction[go][1]])
+                return valid(puzzle,x+direction[go][0],y+direction[go][1],count,dire,region,puzzle_,record)
+            else:
+                return valid(puzzle,x,y,count,dire,region,puzzle_,record)
+
+        else:
+            return valid(puzzle,x,y,count,dire,region,puzzle_,record)
+    
+    
+def generate_(puzzle,x,y,dire,region,count):
+    if count != len(puzzle)*len(puzzle[0])/4:
+        direction = [[1,0],[-1,0],[0,-1],[0,1]]
+        go = random.randint(0,3)
+        flag = 0
+        if len(dire[-1]) == 4:
+            if len(dire) != 1:
+                return generate_(puzzle,x-direction[dire[-2][-1]][0],y-direction[dire[-2][-1]][1],dire[:-1],region,count)
+            else:
+                return puzzle
+        while go in dire[-1]:
+            go = random.randint(0,3)
+        dire[-1].append(go)
+        puzzle_ = copy.deepcopy(puzzle)
+        if x + direction[go][0] >= len(puzzle) or y + direction[go][1] >= len(puzzle[0]) or x + direction[go][0] < 0 or y + direction[go][1] <0:
+            return generate_(puzzle,x,y,dire,region,count)
+        elif puzzle[x + direction[go][0]][y + direction[go][1]] != '0':
+            return generate_(puzzle,x,y,dire,region,count)
+        else:   
+            if x + direction[go][0] < len(puzzle) - 1 and y + direction[go][1] < len(puzzle[0]) - 1 and x + direction[go][0] > 0 and y + direction[go][1] > 0:
+                if go == 0:
+                    if puzzle[x + direction[go][0] + 1][y + direction[go][1]] == '0' and puzzle[x + direction[go][0]][y + direction[go][1]+1] == '0' and puzzle[x + direction[go][0]][y + direction[go][1]-1] == '0':
+                        flag = 1
+                    else:
+                        num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                        num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                        num3,dire3,puzzle_3 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1])
+                        index = [i for i, e in enumerate([num1,num2,num3]) if e != 0]
+                        way = []
+                        num = []
+                        for i in index:
+                            way.append([puzzle_1,puzzle_2,puzzle_3][i])
+                            num.append([num1,num2,num3][i])
+                        if 1 in index and 2 in index:
+    
+                            if sum(num) == len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                flag = 1
+                                for i in way:
+                                    for j in range(len(i)):
+                                        puzzle[j] = max(puzzle[j],i[j])
+                                count += sum(num)
+                            elif min(num) < len(puzzle)*len(puzzle[0])/4 - count - 1 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                tmp = list(puzzle[x + direction[go][0]])
+                                tmp[y + direction[go][1]] = region
+                                tmp = "".join(tmp)
+                                puzzle[x + direction[go][0]] = tmp
+                                if num[0] > num[1]:
+                                    for i in range(len(way[1])):
+                                        puzzle[i] = max(puzzle[i],way[1][i])
+                                    count += num[0] +1
+                                else:
+                                    for i in range(len(way[0])):
+                                        puzzle[i] = max(puzzle[i],way[0][i])
+                                    count += num[1] + 1
+                                return generate_(puzzle,x,y,dire,region,count)
+                                
+                                
+                            elif min(num) % (len(puzzle)*len(puzzle[0])/4) == 0 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                flag = 1
+                            else:
+                                return generate_(puzzle,x,y,dire,region,count)  
+                        else:
+                            flag = 1 
+                if go == 1:
+                    if puzzle[x + direction[go][0] - 1][y + direction[go][1]] == '0' and puzzle[x + direction[go][0]][y + direction[go][1]+1] == '0' and puzzle[x + direction[go][0]][y + direction[go][1]-1] == '0':
+                        flag = 1
+                    else:
+                        num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0] - 1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0] - 1,y + direction[go][1]]) 
+                        num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                        num3,dire3,puzzle_3 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1])
+
+                        index = [i for i, e in enumerate([num1,num2,num3]) if e != 0]
+                        way = []
+                        num = []
+            
+                        for i in index:
+                            way.append([puzzle_1,puzzle_2,puzzle_3][i])
+                            num.append([num1,num2,num3][i])
+                        if 1 in index and 2 in index:
+    
+                            if sum(num) == len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                flag = 1
+                                for i in way:
+                                    for j in range(len(i)):
+                                        puzzle[j] = max(puzzle[j],i[j])
+                                count += sum(num)
+                            elif min(num) < len(puzzle)*len(puzzle[0])/4 - count - 1 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                tmp = list(puzzle[x + direction[go][0]])
+                                tmp[y + direction[go][1]] = region
+                                tmp = "".join(tmp)
+                                puzzle[x + direction[go][0]] = tmp
+                                if num[0] > num[1]:
+                                    for i in range(len(way[1])):
+                                        puzzle[i] = max(puzzle[i],way[1][i])
+                                    count += num[0] +1
+                                else:
+                                    for i in range(len(way[0])):
+                                        puzzle[i] = max(puzzle[i],way[0][i])
+                                    count += num[1] + 1
+                                return generate_(puzzle,x,y,dire,region,count)
+                                
+                                
+                            elif min(num) % (len(puzzle)*len(puzzle[0])/4) == 0 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                flag = 1
+                            else:
+                                return generate_(puzzle,x,y,dire,region,count)
+                                
+                                
+                        else:
+                            flag = 1 
+                        
+                if go == 2:
+                    if puzzle[x + direction[go][0] - 1][y + direction[go][1]] == '0' and puzzle[x + direction[go][0]+1][y + direction[go][1]] == '0' and puzzle[x + direction[go][0]][y + direction[go][1]-1] == '0':
+                        flag = 1
+                    else:
+                        num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0] - 1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0] - 1,y + direction[go][1]]) 
+                        num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                        num3,dire3,puzzle_3 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1])
+                        index = [i for i, e in enumerate([num1,num2,num3]) if e != 0]
+                        way = []
+                        num = []
+            
+                        for i in index:
+                            way.append([puzzle_1,puzzle_2,puzzle_3][i])
+                            num.append([num1,num2,num3][i])
+                        if 0 in index and 1 in index:
+    
+                            if sum(num) == len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                flag = 1
+                                for i in way:
+                                    for j in range(len(i)):
+                                        puzzle[j] = max(puzzle[j],i[j])
+                                count += sum(num)
+                            elif min(num) < len(puzzle)*len(puzzle[0])/4 - count - 1 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                tmp = list(puzzle[x + direction[go][0]])
+                                tmp[y + direction[go][1]] = region
+                                tmp = "".join(tmp)
+                                puzzle[x + direction[go][0]] = tmp
+                                if num[0] > num[1]:
+                                    for i in range(len(way[1])):
+                                        puzzle[i] = max(puzzle[i],way[1][i])
+                                    count += num[0] +1
+                                else:
+                                    for i in range(len(way[0])):
+                                        puzzle[i] = max(puzzle[i],way[0][i])
+                                    count += num[1] + 1
+                                return generate_(puzzle,x,y,dire,region,count)
+                                
+                                
+                            elif min(num) % (len(puzzle)*len(puzzle[0])/4) == 0 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                flag = 1
+                            else:
+                                return generate_(puzzle,x,y,dire,region,count)
+                                
+                                
+                        else:
+                            flag = 1 
+                        
+                if go == 3:
+                    if puzzle[x + direction[go][0] - 1][y + direction[go][1]] == '0' and puzzle[x + direction[go][0]+1][y + direction[go][1]] == '0' and puzzle[x + direction[go][0]][y + direction[go][1]+1] == '0':
+                        flag = 1
+                    else:
+                        num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0] - 1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0] - 1,y + direction[go][1]]) 
+                        num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                        num3,dire3,puzzle_3 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1])
+                        index = [i for i, e in enumerate([num1,num2,num3]) if e != 0]
+                        way = []
+                        num = []
+            
+                        for i in index:
+                            way.append([puzzle_1,puzzle_2,puzzle_3][i])
+                            num.append([num1,num2,num3][i])
+                        if 0 in index and 1 in index:
+    
+                            if sum(num) == len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                flag = 1
+                                for i in way:
+                                    for j in range(len(i)):
+                                        puzzle[j] = max(puzzle[j],i[j])
+                                count += sum(num)
+                            elif min(num) < len(puzzle)*len(puzzle[0])/4 - count - 1 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                tmp = list(puzzle[x + direction[go][0]])
+                                tmp[y + direction[go][1]] = region
+                                tmp = "".join(tmp)
+                                puzzle[x + direction[go][0]] = tmp
+                                if num[0] > num[1]:
+                                    for i in range(len(way[1])):
+                                        puzzle[i] = max(puzzle[i],way[1][i])
+                                    count += num[0] +1
+                                else:
+                                    for i in range(len(way[0])):
+                                        puzzle[i] = max(puzzle[i],way[0][i])
+                                    count += num[1] + 1
+                                return generate_(puzzle,x,y,dire,region,count)
+                                
+                                
+                            elif min(num) % (len(puzzle)*len(puzzle[0])/4) == 0 and max(num)%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                flag = 1
+                            else:
+                                return generate_(puzzle,x,y,dire,region,count)
+                                
+                                
+                        else:
+                            flag = 1 
+                        
+                if flag:
+                    tmp = list(puzzle[x + direction[go][0]])
+                    tmp[y + direction[go][1]] = region
+                    tmp = "".join(tmp)
+                    puzzle[x + direction[go][0]] = tmp
+                    dire.append([])
+                    return generate_(puzzle,x + direction[go][0],y + direction[go][1],dire,region,count+1)
+                    
+            else:
+                if x + direction[go][0] == 0 or x + direction[go][0] == len(puzzle) -1:
+                    if y + direction[go][1] > 0 and y + direction[go][1] < len(puzzle[0]) - 1:
+                        if x + direction[go][0] == 0:
+                            if go == 1:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1]) 
+                            elif go == 2:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                            else:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]])                                    
+                        else:
+                            if go == 0:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1]) 
+                            elif go == 2:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]-1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0]-1,y + direction[go][1]]) 
+                            else:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]-1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0]-1,y + direction[go][1]])                                     
+                        if 0 in [num1,num2] or go != 1 or go != 0:
+                            flag = 1
+                        else:
+                            if num1 + num2 == len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                find = [puzzle_1,puzzle_2]
+                                flag = 1
+                                for i in find:
+                                    for j in range(len(i)):
+                                        puzzle[j] = max(puzzle[j],i[j])
+                                count += sum([num1,num2])
+                            else:
+                                if num1%(len(puzzle)*len(puzzle[0])/4) == 0 and num2%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                    flag = 1
+                                elif max([num1,num2]) < len(puzzle)*len(puzzle[0])/4 and max([num1,num2]) < len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                    flag = 0
+                                    tmp = list(puzzle[x + direction[go][0]])
+                                    tmp[y + direction[go][1]] = region
+                                    tmp = "".join(tmp)
+                                    puzzle[x + direction[go][0]] = tmp
+                                    find = [[num1,puzzle_1],[num2,puzzle_2]]
+                                    for i in find:
+                                        if i[0] > 0 and i[0] < len(puzzle)*len(puzzle[0])/4:
+                                            for j in range(len(i[1])):
+                                                puzzle[j] = max(puzzle[j],i[1][j])
+                                                flag = 1
+                                        if flag:
+                                            count += i[0]+1
+                                            break
+                                    flag = 0
+                                    return generate_(puzzle,x,y,dire,region,count)
+                                elif max([num1,num2])%(len(puzzle)*len(puzzle[0])/4) == 0 and min([num1,num2]) < len(puzzle)*len(puzzle[0])/4 - count - 1: 
+                                    flag = 0
+                                    tmp = list(puzzle[x + direction[go][0]])
+                                    tmp[y + direction[go][1]] = region
+                                    tmp = "".join(tmp)
+                                    puzzle[x + direction[go][0]] = tmp
+                                    find = [[num1,puzzle_1],[num2,puzzle_2]]
+                                    for i in find:
+                                        if i[0] > 0 and i[0] < len(puzzle)*len(puzzle[0])/4:
+                                            for j in range(len(i[1])):
+                                                puzzle[j] = max(puzzle[j],i[1][j])
+                                            count += i[0] + 1
+                                    return generate_(puzzle,x,y,dire,region,count)
+                                else:
+                                    return generate_(puzzle,x,y,dire,region,count)
+                    else:
+                        flag = 1
+                            
+                if y + direction[go][1] == 0 or y + direction[go][1] == len(puzzle[0])-1:
+                    if x + direction[go][0] > 0 and x + direction[go][0] < len(puzzle) - 1:
+                        if y + direction[go][1] == 0:
+                            if go == 2:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]-1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0]-1,y + direction[go][1]]) 
+                            elif go == 0:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                            else:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0],y + direction[go][1]+1,1,[[2]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]+1]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]-1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0]-1,y + direction[go][1]])                                  
+                        else:
+                            if go == 3:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0]-1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0]-1,y + direction[go][1]]) 
+                            elif go == 0:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0]+1,y + direction[go][1],1,[[1]],region,copy.deepcopy(puzzle_),[x + direction[go][0]+1,y + direction[go][1]]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1]) 
+                            else:
+                                num1,dire1,puzzle_1 = exam(puzzle,x + direction[go][0]-1,y + direction[go][1],1,[[0]],region,copy.deepcopy(puzzle_),[x + direction[go][0]-1,y + direction[go][1]]) 
+                                num2,dire2,puzzle_2 = exam(puzzle,x + direction[go][0],y + direction[go][1]-1,1,[[3]],region,copy.deepcopy(puzzle_),[x + direction[go][0],y + direction[go][1]-1])   
+                        if 0 in [num1,num2] or go != 2 or go != 3:
+                            flag = 1
+                        else:
+                            if num1 + num2 == len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                find = [puzzle_1,puzzle_2]
+                                flag = 1
+                                for i in find:
+                                    for j in range(len(i)):
+                                        puzzle[j] = max(puzzle[j],i[j])
+                                count += sum([num1,num2])
+
+                            else:
+                                if num1%(len(puzzle)*len(puzzle[0])/4) == 0 and num2%(len(puzzle)*len(puzzle[0])/4) == 0:
+                                    flag = 1
+                                elif max([num1,num2]) < len(puzzle)*len(puzzle[0])/4 and max([num1,num2]) < len(puzzle)*len(puzzle[0])/4 - count - 1:
+                                    flag = 0
+                                    tmp = list(puzzle[x + direction[go][0]])
+                                    tmp[y + direction[go][1]] = region
+                                    tmp = "".join(tmp)
+                                    puzzle[x + direction[go][0]] = tmp
+                                    find = [[num1,puzzle_1],[num2,puzzle_2]]
+                                    for i in find:
+                                        if i[0] > 0 and i[0] < len(puzzle)*len(puzzle[0])/4:
+                                            for j in range(len(i[1])):
+                                                puzzle[j] = max(puzzle[j],i[1][j])
+                                            flag  =1
+                                        if flag:
+                                            count += i[0]+1
+                                            break
+                                    flag = 0
+                                    return generate_(puzzle,x,y,dire,region,count)
+                                elif max([num1,num2])%(len(puzzle)*len(puzzle[0])/4) == 0 and min([num1,num2]) < len(puzzle)*len(puzzle[0])/4 - count - 1: 
+                                    flag = 0
+                                    tmp = list(puzzle[x + direction[go][0]])
+                                    tmp[y + direction[go][1]] = region
+                                    tmp = "".join(tmp)
+                                    puzzle[x + direction[go][0]] = tmp
+                                    find = [[num1,puzzle_1],[num2,puzzle_2]]
+                                    for i in find:
+                                        if i[0] > 0 and i[0] < len(puzzle)*len(puzzle[0])/4:
+                                            for j in range(len(i[1])):
+                                                puzzle[j] = max(puzzle[j],i[1][j])
+                                            count += i[0] + 1
+                                    return generate_(puzzle,x,y,dire,region,count)
+                                else:
+                                    return generate_(puzzle,x,y,dire,region,count)
+                    else:
+                        flag = 1
+                if flag:
+                    tmp = list(puzzle[x + direction[go][0]])
+                    tmp[y + direction[go][1]] = region
+                    tmp = "".join(tmp)
+                    puzzle[x + direction[go][0]] = tmp
+                    dire.append([])
+                    return generate_(puzzle,x + direction[go][0],y + direction[go][1],dire,region,count+1)
+                else:
+                    return generate_(puzzle,x,y,dire,region,count)
+    else:
+        return puzzle
 
 def pruning(m,n,clue,p_maps,direction):
     elements = []
@@ -203,10 +650,68 @@ def play_rps(pz_server_url: str, netid: str, player_key: str):
 
     return
 
+def get_map():
+    puzzle = ['000000','000000','000000','000000','000000','000000']
+    x = random.randint(0,len(puzzle)-1)
+    y = random.randint(0,len(puzzle[0])-1)
+    symbol = ['x','y','z','w']
+    tmp = list(puzzle[x])
+    tmp[y] = symbol[0]
+    tmp = "".join(tmp)
+    puzzle[x] = tmp
+    puzzle = generate_(puzzle,x,y,[[]],symbol[0],1)
+    flag_ = 0
+    while 1:
+        for i in symbol[1:]:
+            flag = 0
+            for m in range(len(puzzle)):
+                for n in range(len(puzzle[0])):
+                    if puzzle[m][n] == '0':
+                        x = m
+                        y = n
+                        flag = 1
+                        break
+                if flag:
+                    break
+            flag = 0
+            tmp = list(puzzle[x])
+            tmp[y] = i
+            tmp = "".join(tmp)
+            puzzle[x] = tmp
+            puzzle = generate_(puzzle,x,y,[[]],i,1)
+            for m in range(len(puzzle)):
+                for n in range(len(puzzle[0])):
+                    if puzzle[m][n] == i:
+                        x = m
+                        y = n
+                        flag = 1
+                        break
+                if flag:
+                    break
+            if valid(puzzle,x,y,1,[[]],i,copy.deepcopy(puzzle),[[x,y]])[0] == len(puzzle)*len(puzzle[0]) / len(symbol):
+                flag_ += 1
+            else:
+
+                break
+        if flag_ == len(symbol) -1:
+            break
+        else:
+            puzzle = ['000000','000000','000000','000000','000000','000000']
+            x = random.randint(0,len(puzzle)-1)
+            y = random.randint(0,len(puzzle[0])-1)
+            symbol = ['x','y','z','w']
+            tmp = list(puzzle[x])
+            tmp[y] = symbol[0]
+            tmp = "".join(tmp)
+            puzzle[x] = tmp
+            puzzle = generate_(puzzle,x,y,[[]],symbol[0],1)
+            flag_ = 0
+    return puzzle
 
 if __name__ == "__main__":
-    #maps=["000000","000xx0","00xxy0","0yyy00","0yy000","000000"]
+    maps=get_map()
     #p_maps = [['000000','000000','000000','000000','000000','000000']]
+    
     p_maps = [['000000','000000','000000','000000','000000','000000']]
     netid = 'chunhao3'
     player_key = '7169e9f9e017'
